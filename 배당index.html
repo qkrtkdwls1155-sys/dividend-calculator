@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>커버드콜 배당 재투자 시뮬레이터</title>
+  <style>
+    .calc-card { max-width: 500px; margin: 20px auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; font-family: sans-serif; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .calc-title { font-size: 20px; font-weight: bold; margin-bottom: 8px; color: #0f172a; }
+    .calc-sub { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+    .input-group { margin-bottom: 16px; }
+    .input-group label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #334155; }
+    .input-group input[type="range"] { width: 100%; cursor: pointer; }
+    .result-box { margin-top: 24px; padding: 16px; background: #f8fafc; border-radius: 8px; }
+    .result-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+    .result-row.total { font-size: 16px; font-weight: bold; border-top: 1px solid #e2e8f0; padding-top: 8px; margin-bottom: 0; color: #0284c7; }
+  </style>
+</head>
+<body>
+
+<div class="calc-card">
+  <div class="calc-title">📈 커버드콜 배당 재투자 시뮬레이터</div>
+  <div class="calc-sub">배당소득세(15.4%) 차감 후 월배당 전액을 지수 ETF에 재투자 시 모의 계산</div>
+
+  <div class="input-group">
+    <label>초기 거치금: <span id="v_initial">$100,000</span></label>
+    <input type="range" id="initial" min="10000" max="500000" step="10000" value="100000" oninput="calculate()">
+  </div>
+
+  <div class="input-group">
+    <label>커버드콜 연 배당률: <span id="v_divRate">10%</span></label>
+    <input type="range" id="divRate" min="5" max="20" step="0.5" value="10" oninput="calculate()">
+  </div>
+
+  <div class="input-group">
+    <label>재투자 ETF 연 수익률: <span id="v_indexReturn">8%</span></label>
+    <input type="range" id="indexReturn" min="0" max="15" step="0.5" value="8" oninput="calculate()">
+  </div>
+
+  <div class="input-group">
+    <label>투자 기간: <span id="v_years">10년</span></label>
+    <input type="range" id="years" min="1" max="30" step="1" value="10" oninput="calculate()">
+  </div>
+
+  <div class="result-box">
+    <div class="result-row">
+      <span>거치식 원금:</span>
+      <strong id="r_initial">$100,000</strong>
+    </div>
+    <div class="result-row">
+      <span>재투자 적립 가치:</span>
+      <strong id="r_reinvested">$0</strong>
+    </div>
+    <div class="result-row total">
+      <span>예상 총 자산:</span>
+      <strong id="r_total">$0</strong>
+    </div>
+  </div>
+</div>
+
+<script>
+function calculate() {
+  const initial = parseFloat(document.getElementById('initial').value);
+  const divRate = parseFloat(document.getElementById('divRate').value);
+  const indexReturn = parseFloat(document.getElementById('indexReturn').value);
+  const years = parseInt(document.getElementById('years').value);
+
+  // 값 표시 업데이트
+  document.getElementById('v_initial').innerText = '$' + initial.toLocaleString();
+  document.getElementById('v_divRate').innerText = divRate + '%';
+  document.getElementById('v_indexReturn').innerText = indexReturn + '%';
+  document.getElementById('v_years').innerText = years + '년';
+
+  // 세후 월 배당금 계산 (배당소득세 15.4% 차감)
+  const monthlyDiv = (initial * (divRate * 0.846 / 100)) / 12;
+  const months = years * 12;
+  const monthlyRate = (indexReturn / 100) / 12;
+
+  // 재투자 미래 가치 (적립식 복리 계산)
+  let reinvested = 0;
+  if (monthlyRate > 0) {
+    reinvested = monthlyDiv * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+  } else {
+    reinvested = monthlyDiv * months;
+  }
+
+  const total = initial + reinvested;
+
+  // 결과 반영
+  document.getElementById('r_initial').innerText = '$' + initial.toLocaleString();
+  document.getElementById('r_reinvested').innerText = '$' + Math.round(reinvested).toLocaleString();
+  document.getElementById('r_total').innerText = '$' + Math.round(total).toLocaleString();
+}
+
+// 최초 실행
+calculate();
+</script>
+
+</body>
+</html>
